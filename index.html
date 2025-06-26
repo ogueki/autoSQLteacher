@@ -1,4 +1,78 @@
-<!DOCTYPE html>
+updateTOC() {
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.classList.remove('active');
+                    const itemPage = parseInt(item.dataset.page);
+                    if (this.pageNum >= itemPage) {
+                        const nextItem = item.nextElementSibling;
+                        const nextPage = nextItem ? parseInt(nextItem.dataset.page) : this.totalPages + 1;
+                        if (this.pageNum < nextPage) {
+                            item.classList.add('active');
+                        }
+                    }
+                });
+            }
+
+            updateNavButtons() {
+                document.getElementById('prevBtn').disabled = this.pageNum <= 1;
+                document.getElementById('nextBtn').disabled = this.pageNum >= this.totalPages;
+            }        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                left: -100vw;
+                right: 0;
+                width: calc(100vw - 40px);
+                top: 120px;
+                bottom: 220px;
+            }
+            
+            .sidebar.open {
+                left: 20px;
+            }
+            
+            .sidebar-toggle.open {
+                left: calc(100vw - 60px);
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+            }
+
+            .text-window {
+                height: 150px;
+            }
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .zoom-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            background: #e2e8f0;
+            color: #333;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .zoom-btn:hover {
+            background: #cbd5e0;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -211,6 +285,24 @@
             margin-bottom: 1rem;
         }
 
+        .pdf-viewer {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background: white;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
         .text-window {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -308,22 +400,14 @@
             color: white;
         }
 
-        .pdf-viewer {
-            width: 100%;
-            max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            background: white;
-            min-height: 600px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
         .loading {
             text-align: center;
             color: #666;
             font-size: 1.1rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         .features-panel {
@@ -353,62 +437,9 @@
             margin-right: 0.5rem;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-                padding: 1rem;
-            }
-            
-            .sidebar {
-                left: -100vw;
-                right: 0;
-                width: calc(100vw - 40px);
-                top: 120px;
-                bottom: 220px;
-            }
-            
-            .sidebar.open {
-                left: 20px;
-            }
-            
-            .sidebar-toggle.open {
-                left: calc(100vw - 60px);
-            }
-            
-            .nav-buttons {
-                flex-direction: column;
-            }
-
-            .text-window {
-                height: 150px;
-            }
-        }
-
-        .zoom-controls {
-            display: flex;
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-
-        .zoom-btn {
-            padding: 0.5rem;
-            border: none;
-            border-radius: 6px;
-            background: #e2e8f0;
-            color: #333;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s ease;
-        }
-
-        .zoom-btn:hover {
-            background: #cbd5e0;
-        }
-
         canvas {
             max-width: 100%;
-            height: auto;
+            max-height: 100%;
             border-radius: 8px;
         }
     </style>
@@ -665,44 +696,32 @@
             }
 
             async loadPDF() {
+                console.log('PDF読み込み開始...');
                 try {
-                    // Base64エンコードされたPDFデータ、またはオンラインPDFを読み込み
-                    
-                    // 方法1: オンラインPDFのURL（CORS対応サーバー必要）
-                    // const pdfUrl = 'https://your-domain.com/sql-course.pdf';
-                    
-                    // 方法2: Base64埋め込み（下記のembedBase64PDF()で設定）
-                    // const pdfData = this.getEmbeddedPDFData();
-                    
-                    // 方法3: ローカルファイル（開発用）
-                    const pdfUrl = 'sql-course.pdf';
+                    const pdfUrl = './sql-course.pdf';
+                    console.log('PDFファイルパス:', pdfUrl);
                     
                     this.loading.textContent = 'PDF教材を読み込み中...';
                     
-                    // まずローカルファイルを試行
-                    try {
-                        this.pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
-                        console.log('ローカルPDFの読み込み成功');
-                    } catch (localError) {
-                        console.log('ローカルPDF読み込み失敗、Base64データを確認...');
-                        // ローカルファイルが見つからない場合はBase64データを試行
-                        const base64Data = this.getEmbeddedPDFData();
-                        if (base64Data) {
-                            this.pdfDoc = await pdfjsLib.getDocument({data: base64Data}).promise;
-                            console.log('Base64 PDFの読み込み成功');
-                        } else {
-                            throw new Error('PDFデータが見つかりません');
-                        }
-                    }
+                    // PDF.jsでPDFを読み込み
+                    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                    this.pdfDoc = await loadingTask.promise;
+                    
+                    console.log('PDF読み込み成功！ページ数:', this.pdfDoc.numPages);
                     
                     this.totalPages = this.pdfDoc.numPages;
                     document.getElementById('totalPages').textContent = this.totalPages;
-                    this.updateTOCForActualPDF();
+                    
+                    // 最初のページを表示
                     await this.renderPage(1);
                     
                 } catch (error) {
-                    console.error('PDFの読み込みに失敗しました:', error);
-                    this.showDeploymentOptions();
+                    console.error('PDF読み込みエラー:', error);
+                    console.log('デモモードで表示します');
+                    
+                    // エラー時はダミーページを表示
+                    this.createDummyPage();
+                    this.loading.style.display = 'none';
                 }
             }
             
@@ -888,14 +907,18 @@
             }
 
             async renderPage(num) {
+                console.log('ページ描画開始:', num);
                 this.pageNum = num;
                 
                 if (this.pdfDoc) {
-                    // 実際のPDFページを表示
                     try {
+                        console.log('PDFページを取得中...');
                         const page = await this.pdfDoc.getPage(num);
-                        const viewport = page.getViewport({scale: this.scale});
                         
+                        const viewport = page.getViewport({scale: this.scale});
+                        console.log('ビューポート:', viewport.width, 'x', viewport.height);
+                        
+                        // キャンバスサイズを設定
                         this.canvas.height = viewport.height;
                         this.canvas.width = viewport.width;
                         
@@ -904,16 +927,20 @@
                             viewport: viewport
                         };
                         
+                        // ローディングメッセージを非表示
                         this.loading.style.display = 'none';
                         this.canvas.style.display = 'block';
                         
+                        console.log('ページを描画中...');
                         await page.render(renderContext).promise;
+                        console.log('ページ描画完了');
+                        
                     } catch (error) {
-                        console.error('ページの描画に失敗しました:', error);
+                        console.error('ページ描画エラー:', error);
                         this.createDummyPage();
                     }
                 } else {
-                    // ダミーページを表示
+                    console.log('PDFが読み込まれていないため、ダミーページを表示');
                     this.createDummyPage();
                 }
                 
