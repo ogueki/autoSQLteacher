@@ -40,9 +40,11 @@
             margin: 0 auto;
             padding: 2rem;
             display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 2rem;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr auto;
+            gap: 1rem;
             min-height: calc(100vh - 100px);
+            position: relative;
         }
 
         .sidebar {
@@ -51,9 +53,43 @@
             border-radius: 15px;
             padding: 1.5rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            height: fit-content;
-            position: sticky;
+            position: fixed;
+            left: -320px;
             top: 120px;
+            bottom: 200px;
+            width: 300px;
+            z-index: 200;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            left: 20px;
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            left: 20px;
+            top: 140px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 0.5rem;
+            cursor: pointer;
+            z-index: 250;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .sidebar-toggle:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .sidebar-toggle.open {
+            left: 340px;
         }
 
         .sidebar h2 {
@@ -172,6 +208,104 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             position: relative;
             overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .text-window {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: 180px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .text-window-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .text-window-title {
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .text-window-content {
+            line-height: 1.6;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .chat-message {
+            margin: 0.8rem 0;
+            padding: 0.8rem;
+            border-radius: 10px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chat-message.bot {
+            background: linear-gradient(135deg, #e8f4f8, #f0f8ff);
+            border-left: 4px solid #667eea;
+        }
+
+        .chat-message.system {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-left: 4px solid #28a745;
+        }
+
+        .chat-message.user {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-left: 4px solid #ffc107;
+            margin-left: 2rem;
+        }
+
+        .message-author {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+            color: #495057;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .text-window-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .control-btn {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            border-radius: 6px;
+            background: #e2e8f0;
+            color: #333;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background: #cbd5e0;
+            transform: translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: #667eea;
+            color: white;
         }
 
         .pdf-viewer {
@@ -227,12 +361,27 @@
             }
             
             .sidebar {
-                position: static;
-                order: 2;
+                left: -100vw;
+                right: 0;
+                width: calc(100vw - 40px);
+                top: 120px;
+                bottom: 220px;
+            }
+            
+            .sidebar.open {
+                left: 20px;
+            }
+            
+            .sidebar-toggle.open {
+                left: calc(100vw - 60px);
             }
             
             .nav-buttons {
                 flex-direction: column;
+            }
+
+            .text-window {
+                height: 150px;
             }
         }
 
@@ -270,7 +419,11 @@
     </div>
 
     <div class="container">
-        <div class="sidebar">
+        <!-- サイドバー開閉ボタン -->
+        <button class="sidebar-toggle" id="sidebarToggle">📚</button>
+        
+        <!-- サイドバー -->
+        <div class="sidebar" id="sidebar">
             <h2>学習ナビゲーション</h2>
             
             <div class="controls">
@@ -322,9 +475,35 @@
             </div>
         </div>
 
+        <!-- PDFビューアー -->
         <div class="pdf-container">
             <canvas id="pdfCanvas" class="pdf-viewer"></canvas>
             <div id="loadingMessage" class="loading">PDF教材を読み込み中...</div>
+        </div>
+
+        <!-- テキストウィンドウ -->
+        <div class="text-window">
+            <div class="text-window-header">
+                <div class="text-window-title">
+                    <span id="windowMode">💬</span>
+                    <span id="windowTitle">AI学習アシスタント</span>
+                </div>
+                <div class="text-window-controls">
+                    <button class="control-btn active" id="chatMode">チャット</button>
+                    <button class="control-btn" id="explanationMode">解説</button>
+                    <button class="control-btn" id="clearBtn">クリア</button>
+                </div>
+            </div>
+            <div class="text-window-content" id="textContent">
+                <div class="chat-message bot">
+                    <div class="message-author">🤖 AI先生</div>
+                    こんにちは！SQL学習のお手伝いをします。分からないことがあれば何でも聞いてくださいね！
+                </div>
+                <div class="chat-message system">
+                    <div class="message-author">📖 システム</div>
+                    学習を開始しました。サイドバーから目次を選択して、自分のペースで進めてください。
+                </div>
+            </div>
         </div>
     </div>
 
@@ -341,12 +520,18 @@
                 this.canvas = document.getElementById('pdfCanvas');
                 this.ctx = this.canvas.getContext('2d');
                 this.loading = document.getElementById('loadingMessage');
+                this.sidebarOpen = false;
+                this.currentMode = 'chat'; // 'chat' or 'explanation'
                 
                 this.initEventListeners();
                 this.loadPDF();
+                this.initTextWindow();
             }
 
             initEventListeners() {
+                // サイドバー開閉
+                document.getElementById('sidebarToggle').addEventListener('click', () => this.toggleSidebar());
+                
                 // ナビゲーションボタン
                 document.getElementById('prevBtn').addEventListener('click', () => this.prevPage());
                 document.getElementById('nextBtn').addEventListener('click', () => this.nextPage());
@@ -361,83 +546,308 @@
                     item.addEventListener('click', (e) => {
                         const page = parseInt(e.target.dataset.page);
                         this.goToPage(page);
+                        this.addMessage('system', `ページ ${page} に移動しました`);
                     });
                 });
+
+                // テキストウィンドウコントロール
+                document.getElementById('chatMode').addEventListener('click', () => this.setMode('chat'));
+                document.getElementById('explanationMode').addEventListener('click', () => this.setMode('explanation'));
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearTextWindow());
 
                 // キーボードナビゲーション
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'ArrowLeft') this.prevPage();
                     if (e.key === 'ArrowRight') this.nextPage();
+                    if (e.key === 'Escape') this.closeSidebar();
                 });
-            }
 
-            async loadPDF() {
-                try {
-                    // 事前に配置されたPDFファイルを読み込み
-                    const pdfUrl = 'sql-course.pdf'; // PDFファイル名を指定
-                    this.loading.textContent = 'PDF教材を読み込み中...';
-                    
-                    this.pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
-                    this.totalPages = this.pdfDoc.numPages;
-                    document.getElementById('totalPages').textContent = this.totalPages;
-                    
-                    // 目次を実際のページ数に合わせて更新
-                    this.updateTOCForActualPDF();
-                    
-                    await this.renderPage(1);
-                    console.log('PDF読み込み完了:', this.totalPages, 'ページ');
-                    
-                } catch (error) {
-                    console.error('PDFの読み込みに失敗しました:', error);
-                    console.log('ローカルサーバーが必要です。デモモードで表示します。');
-                    this.showServerRequiredMessage();
-                }
-            }
-
-            updateTOCForActualPDF() {
-                // 実際のPDFのページ数に基づいて目次を更新
-                const tocItems = document.querySelectorAll('.toc-item');
-                tocItems.forEach(item => {
-                    const page = parseInt(item.dataset.page);
-                    if (page > this.totalPages) {
-                        item.style.display = 'none'; // 存在しないページは非表示
+                // サイドバー外クリックで閉じる
+                document.addEventListener('click', (e) => {
+                    const sidebar = document.getElementById('sidebar');
+                    const toggle = document.getElementById('sidebarToggle');
+                    if (this.sidebarOpen && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                        this.closeSidebar();
                     }
                 });
             }
 
-            showServerRequiredMessage() {
+            toggleSidebar() {
+                this.sidebarOpen = !this.sidebarOpen;
+                const sidebar = document.getElementById('sidebar');
+                const toggle = document.getElementById('sidebarToggle');
+                
+                sidebar.classList.toggle('open', this.sidebarOpen);
+                toggle.classList.toggle('open', this.sidebarOpen);
+                toggle.textContent = this.sidebarOpen ? '✖️' : '📚';
+            }
+
+            closeSidebar() {
+                this.sidebarOpen = false;
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebarToggle').classList.remove('open');
+                document.getElementById('sidebarToggle').textContent = '📚';
+            }
+
+            initTextWindow() {
+                // 学習コンテンツに基づく自動解説システムの初期化
+                this.pageExplanations = {
+                    1: "SQL講習へようこそ！この講座では、データベースの基本からSQLの実践的な使い方まで学びます。",
+                    2: "意外と身近なSQLについて学びます。普段使っているWebサイトでも、裏側ではSQLが動いています。",
+                    6: "Webアプリケーションの仕組みを理解しましょう。3層構造について詳しく説明します。",
+                    9: "データベースの基本概念を学びます。リレーショナルデータベースが現在の主流です。",
+                    17: "いよいよSQL文を実際に書いてみましょう！まずは基本的なSELECT文から始めます。",
+                    18: "SELECT文は最も重要なSQL文です。データを取得するための基本構文を覚えましょう。",
+                    21: "WHERE句を使って、条件に合うデータだけを取得する方法を学びます。",
+                    27: "ORDER BYでデータを並び替える方法を学びます。昇順・降順の使い分けが重要です。",
+                    29: "AND、OR、NOTなどの演算子を使って、より複雑な条件を指定できます。",
+                    42: "COUNT関数とGROUP BYを使って、データの集計を行う方法を学びます。",
+                    47: "練習問題にチャレンジしましょう！実際に手を動かすことで理解が深まります。"
+                };
+            }
+
+            setMode(mode) {
+                this.currentMode = mode;
+                const chatBtn = document.getElementById('chatMode');
+                const explanationBtn = document.getElementById('explanationMode');
+                const windowTitle = document.getElementById('windowTitle');
+                const windowMode = document.getElementById('windowMode');
+                
+                chatBtn.classList.toggle('active', mode === 'chat');
+                explanationBtn.classList.toggle('active', mode === 'explanation');
+                
+                if (mode === 'chat') {
+                    windowTitle.textContent = 'AI学習アシスタント';
+                    windowMode.textContent = '💬';
+                    this.addMessage('bot', 'チャットモードです。何か質問があれば聞いてください！');
+                } else {
+                    windowTitle.textContent = '学習ガイド';
+                    windowMode.textContent = '📖';
+                    this.showPageExplanation();
+                }
+            }
+
+            addMessage(type, content, author = null) {
+                const textContent = document.getElementById('textContent');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${type}`;
+                
+                const authorNames = {
+                    'bot': '🤖 AI先生',
+                    'system': '📖 システム',
+                    'user': '👤 あなた'
+                };
+                
+                const authorName = author || authorNames[type];
+                
+                messageDiv.innerHTML = `
+                    <div class="message-author">${authorName}</div>
+                    ${content}
+                `;
+                
+                textContent.appendChild(messageDiv);
+                textContent.scrollTop = textContent.scrollHeight;
+            }
+
+            showPageExplanation() {
+                const explanation = this.pageExplanations[this.pageNum];
+                if (explanation) {
+                    this.clearTextWindow();
+                    this.addMessage('system', `ページ ${this.pageNum} の解説`, '📖 学習ガイド');
+                    this.addMessage('explanation', explanation);
+                } else {
+                    this.addMessage('system', `ページ ${this.pageNum} の詳細解説は準備中です。`);
+                }
+            }
+
+            clearTextWindow() {
+                document.getElementById('textContent').innerHTML = '';
+            }
+
+            async loadPDF() {
+                try {
+                    // Base64エンコードされたPDFデータ、またはオンラインPDFを読み込み
+                    
+                    // 方法1: オンラインPDFのURL（CORS対応サーバー必要）
+                    // const pdfUrl = 'https://your-domain.com/sql-course.pdf';
+                    
+                    // 方法2: Base64埋め込み（下記のembedBase64PDF()で設定）
+                    // const pdfData = this.getEmbeddedPDFData();
+                    
+                    // 方法3: ローカルファイル（開発用）
+                    const pdfUrl = 'sql-course.pdf';
+                    
+                    this.loading.textContent = 'PDF教材を読み込み中...';
+                    
+                    // まずローカルファイルを試行
+                    try {
+                        this.pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+                        console.log('ローカルPDFの読み込み成功');
+                    } catch (localError) {
+                        console.log('ローカルPDF読み込み失敗、Base64データを確認...');
+                        // ローカルファイルが見つからない場合はBase64データを試行
+                        const base64Data = this.getEmbeddedPDFData();
+                        if (base64Data) {
+                            this.pdfDoc = await pdfjsLib.getDocument({data: base64Data}).promise;
+                            console.log('Base64 PDFの読み込み成功');
+                        } else {
+                            throw new Error('PDFデータが見つかりません');
+                        }
+                    }
+                    
+                    this.totalPages = this.pdfDoc.numPages;
+                    document.getElementById('totalPages').textContent = this.totalPages;
+                    this.updateTOCForActualPDF();
+                    await this.renderPage(1);
+                    
+                } catch (error) {
+                    console.error('PDFの読み込みに失敗しました:', error);
+                    this.showDeploymentOptions();
+                }
+            }
+            
+            getEmbeddedPDFData() {
+                // ここにBase64エンコードされたPDFデータを設定
+                // 実際のPDFをBase64に変換したデータを入れてください
+                const base64PDF = ''; // 空の場合はBase64データなし
+                
+                if (base64PDF) {
+                    // Base64文字列をUint8Arrayに変換
+                    const binaryString = atob(base64PDF);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    return bytes;
+                }
+                return null;
+            }
+
+            showDeploymentOptions() {
                 this.loading.innerHTML = `
-                    <div style="text-align: center; padding: 2rem;">
-                        <h3 style="margin-bottom: 1rem; color: #333;">ローカルサーバーが必要です</h3>
-                        <p style="margin-bottom: 1rem; color: #666;">
-                            PDFファイルを読み込むには、以下のいずれかの方法でローカルサーバーを起動してください：
-                        </p>
-                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; text-align: left; margin: 1rem 0;">
-                            <strong>Python がある場合:</strong><br>
-                            <code style="background: #e9ecef; padding: 0.2rem;">python -m http.server 8000</code><br><br>
+                    <div style="text-align: center; padding: 2rem; max-width: 600px; margin: 0 auto;">
+                        <h3 style="margin-bottom: 1rem; color: #333;">🚀 実際の運用には以下の方法をお勧めします</h3>
+                        
+                        <div style="text-align: left; margin: 1.5rem 0;">
+                            <div style="background: #e8f5e8; padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 4px solid #28a745;">
+                                <strong>📱 推奨: GitHub Pages（無料・簡単）</strong><br>
+                                <small style="color: #666;">
+                                    1. GitHub.com でアカウント作成<br>
+                                    2. リポジトリ作成してファイルアップロード<br>
+                                    3. Settings → Pages で公開<br>
+                                    4. 生徒にURLを共有
+                                </small>
+                            </div>
                             
-                            <strong>Node.js がある場合:</strong><br>
-                            <code style="background: #e9ecef; padding: 0.2rem;">npx serve .</code><br><br>
+                            <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 4px solid #ffc107;">
+                                <strong>💾 代替案: Base64埋め込み</strong><br>
+                                <small style="color: #666;">
+                                    PDFをHTMLに直接埋め込み<br>
+                                    ファイル1つで完結（サイズは大きくなる）
+                                </small>
+                            </div>
                             
-                            <strong>PHP がある場合:</strong><br>
-                            <code style="background: #e9ecef; padding: 0.2rem;">php -S localhost:8000</code>
+                            <div style="background: #d1ecf1; padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 4px solid #17a2b8;">
+                                <strong>🌐 その他: 無料ホスティング</strong><br>
+                                <small style="color: #666;">
+                                    Netlify、Vercel、Firebase Hosting など
+                                </small>
+                            </div>
                         </div>
-                        <button id="demoBtn" style="
-                            padding: 1rem 2rem;
-                            background: #667eea;
-                            color: white;
-                            border: none;
-                            border-radius: 8px;
-                            cursor: pointer;
-                            font-size: 1rem;
-                            margin-top: 1rem;
-                        ">とりあえずデモを見る</button>
+
+                        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                            <button id="demoBtn" style="
+                                padding: 1rem 1.5rem;
+                                background: #667eea;
+                                color: white;
+                                border: none;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 1rem;
+                            ">📋 とりあえずデモを見る</button>
+                            
+                            <button id="helpBtn" style="
+                                padding: 1rem 1.5rem;
+                                background: #28a745;
+                                color: white;
+                                border: none;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 1rem;
+                            ">📖 詳細な手順を見る</button>
+                        </div>
                     </div>
                 `;
                 
                 document.getElementById('demoBtn').onclick = () => {
                     this.createDummyPage();
                     this.loading.style.display = 'none';
+                };
+                
+                document.getElementById('helpBtn').onclick = () => {
+                    this.showDetailedInstructions();
+                };
+            }
+            
+            showDetailedInstructions() {
+                this.loading.innerHTML = `
+                    <div style="text-align: left; padding: 2rem; max-width: 700px; margin: 0 auto;">
+                        <h3 style="text-align: center; margin-bottom: 2rem; color: #333;">🎯 GitHub Pages での公開手順</h3>
+                        
+                        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px;">
+                            <h4 style="color: #495057; margin-bottom: 1rem;">📝 ステップ1: GitHubアカウント作成</h4>
+                            <ol style="line-height: 1.6; color: #666;">
+                                <li><a href="https://github.com" target="_blank" style="color: #667eea;">github.com</a> でアカウント作成（無料）</li>
+                                <li>メール認証を完了</li>
+                            </ol>
+                            
+                            <h4 style="color: #495057; margin: 1.5rem 0 1rem;">📁 ステップ2: リポジトリ作成</h4>
+                            <ol style="line-height: 1.6; color: #666;">
+                                <li>「New repository」をクリック</li>
+                                <li>Repository name: <code>sql-learning</code> など</li>
+                                <li>「Public」を選択</li>
+                                <li>「Create repository」をクリック</li>
+                            </ol>
+                            
+                            <h4 style="color: #495057; margin: 1.5rem 0 1rem;">📤 ステップ3: ファイルアップロード</h4>
+                            <ol style="line-height: 1.6; color: #666;">
+                                <li>「uploading an existing file」をクリック</li>
+                                <li><code>index.html</code> と <code>sql-course.pdf</code> をドラッグ</li>
+                                <li>「Commit changes」をクリック</li>
+                            </ol>
+                            
+                            <h4 style="color: #495057; margin: 1.5rem 0 1rem;">🌐 ステップ4: GitHub Pages 有効化</h4>
+                            <ol style="line-height: 1.6; color: #666;">
+                                <li>リポジトリの「Settings」タブをクリック</li>
+                                <li>左メニューから「Pages」を選択</li>
+                                <li>Source: 「Deploy from a branch」</li>
+                                <li>Branch: 「main」を選択して「Save」</li>
+                                <li>数分待つと URL が表示される</li>
+                            </ol>
+                            
+                            <div style="background: #d4edda; padding: 1rem; border-radius: 8px; margin-top: 1.5rem;">
+                                <strong style="color: #155724;">✅ 完了！</strong><br>
+                                <span style="color: #155724;">表示されたURLを生徒に共有すれば、誰でもアクセス可能になります</span>
+                            </div>
+                        </div>
+                        
+                        <button id="backBtn" style="
+                            margin-top: 2rem;
+                            padding: 1rem 2rem;
+                            background: #6c757d;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            display: block;
+                            margin-left: auto;
+                            margin-right: auto;
+                        ">← 戻る</button>
+                    </div>
+                `;
+                
+                document.getElementById('backBtn').onclick = () => {
+                    this.showDeploymentOptions();
                 };
             }
 
@@ -515,16 +925,27 @@
             prevPage() {
                 if (this.pageNum <= 1) return;
                 this.renderPage(this.pageNum - 1);
+                this.addMessage('system', `前のページ（${this.pageNum}ページ）に移動しました`);
+                if (this.currentMode === 'explanation') {
+                    setTimeout(() => this.showPageExplanation(), 500);
+                }
             }
 
             nextPage() {
                 if (this.pageNum >= this.totalPages) return;
                 this.renderPage(this.pageNum + 1);
+                this.addMessage('system', `次のページ（${this.pageNum}ページ）に移動しました`);
+                if (this.currentMode === 'explanation') {
+                    setTimeout(() => this.showPageExplanation(), 500);
+                }
             }
 
             goToPage(pageNum) {
                 if (pageNum < 1 || pageNum > this.totalPages) return;
                 this.renderPage(pageNum);
+                if (this.currentMode === 'explanation') {
+                    setTimeout(() => this.showPageExplanation(), 500);
+                }
             }
 
             zoomIn() {
