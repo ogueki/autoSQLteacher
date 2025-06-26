@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL講習学習サイト - VOL.1</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 100px);
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+        }
+
+        .sidebar h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .controls {
+            margin-bottom: 2rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 0.7rem;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .page-info {
+            text-align: center;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .progress-container {
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: #666;
+        }
+
+        .toc {
+            margin-top: 1rem;
+        }
+
+        .toc h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .toc-item {
+            padding: 0.5rem;
+            margin: 0.2rem 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #666;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .toc-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #333;
+            border-left-color: #667eea;
+        }
+
+        .toc-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            color: #333;
+            border-left-color: #667eea;
+            font-weight: 500;
+        }
+
+        .pdf-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pdf-viewer {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background: white;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .features-panel {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .features-panel h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 0.3rem 0;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .feature-item::before {
+            content: "⭐";
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                position: static;
+                order: 2;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+            }
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .zoom-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            background: #e2e8f0;
+            color: #333;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .zoom-btn:hover {
+            background: #cbd5e0;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SQL講習学習サイト - VOL.1</h1>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <h2>学習ナビゲーション</h2>
+            
+            <div class="controls">
+                <div class="nav-buttons">
+                    <button class="nav-btn" id="prevBtn">← 前へ</button>
+                    <button class="nav-btn" id="nextBtn">次へ →</button>
+                </div>
+                
+                <div class="page-info">
+                    <span id="currentPage">1</span> / <span id="totalPages">52</span>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">進捗: 0%</div>
+                </div>
+
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoomOutBtn">縮小</button>
+                    <button class="zoom-btn" id="zoomInBtn">拡大</button>
+                    <button class="zoom-btn" id="resetZoomBtn">リセット</button>
+                </div>
+            </div>
+
+            <div class="toc">
+                <h3>目次</h3>
+                <div class="toc-item active" data-page="1">1. はじめに</div>
+                <div class="toc-item" data-page="2">2. 身近なSQL</div>
+                <div class="toc-item" data-page="6">3. Webアプリケーション</div>
+                <div class="toc-item" data-page="9">4. データベース</div>
+                <div class="toc-item" data-page="17">5. SQLを実行してみよう</div>
+                <div class="toc-item" data-page="18">6. SELECT文</div>
+                <div class="toc-item" data-page="21">7. WHERE</div>
+                <div class="toc-item" data-page="27">8. ORDER BY</div>
+                <div class="toc-item" data-page="29">9. 演算子</div>
+                <div class="toc-item" data-page="42">10. COUNT・GROUP BY</div>
+                <div class="toc-item" data-page="47">11. 練習問題</div>
+            </div>
+
+            <div class="features-panel">
+                <h3>今後追加予定</h3>
+                <div class="feature-item">練習問題の実行環境</div>
+                <div class="feature-item">AIチャットボット</div>
+                <div class="feature-item">学習進捗の保存</div>
+                <div class="feature-item">クイズ機能</div>
+                <div class="feature-item">解説動画</div>
+            </div>
+        </div>
+
+        <div class="pdf-container">
+            <canvas id="pdfCanvas" class="pdf-viewer"></canvas>
+            <div id="loadingMessage" class="loading">PDF教材を読み込み中...</div>
+        </div>
+    </div>
+
+    <script>
+        // PDF.js設定
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        class SQLLearningApp {
+            constructor() {
+                this.pdfDoc = null;
+                this.pageNum = 1;
+                this.totalPages = 52;
+                this.scale = 1.2;
+                this.canvas = document.getElementById('pdfCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.loading = document.getElementById('loadingMessage');
+                
+                this.initEventListeners();
+                this.loadPDF();
+            }
+
+            initEventListeners() {
+                // ナビゲーションボタン
+                document.getElementById('prevBtn').addEventListener('click', () => this.prevPage());
+                document.getElementById('nextBtn').addEventListener('click', () => this.nextPage());
+                
+                // ズームコントロール
+                document.getElementById('zoomInBtn').addEventListener('click', () => this.zoomIn());
+                document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoomOut());
+                document.getElementById('resetZoomBtn').addEventListener('click', () => this.resetZoom());
+                
+                // 目次アイテム
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const page = parseInt(e.target.dataset.page);
+                        this.goToPage(page);
+                    });
+                });
+
+                // キーボードナビゲーション
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowLeft') this.prevPage();
+                    if (e.key === 'ArrowRight') this.nextPage();
+                });
+            }
+
+            async loadPDF() {
+                try {
+                    // 事前に配置されたPDFファイルを読み込み
+                    const pdfUrl = 'sql-course.pdf'; // PDFファイル名を指定
+                    this.loading.textContent = 'PDF教材を読み込み中...';
+                    
+                    this.pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+                    this.totalPages = this.pdfDoc.numPages;
+                    document.getElementById('totalPages').textContent = this.totalPages;
+                    
+                    // 目次を実際のページ数に合わせて更新
+                    this.updateTOCForActualPDF();
+                    
+                    await this.renderPage(1);
+                    console.log('PDF読み込み完了:', this.totalPages, 'ページ');
+                    
+                } catch (error) {
+                    console.error('PDFの読み込みに失敗しました:', error);
+                    console.log('ローカルサーバーが必要です。デモモードで表示します。');
+                    this.showServerRequiredMessage();
+                }
+            }
+
+            updateTOCForActualPDF() {
+                // 実際のPDFのページ数に基づいて目次を更新
+                const tocItems = document.querySelectorAll('.toc-item');
+                tocItems.forEach(item => {
+                    const page = parseInt(item.dataset.page);
+                    if (page > this.totalPages) {
+                        item.style.display = 'none'; // 存在しないページは非表示
+                    }
+                });
+            }
+
+            showServerRequiredMessage() {
+                this.loading.innerHTML = `
+                    <div style="text-align: center; padding: 2rem;">
+                        <h3 style="margin-bottom: 1rem; color: #333;">ローカルサーバーが必要です</h3>
+                        <p style="margin-bottom: 1rem; color: #666;">
+                            PDFファイルを読み込むには、以下のいずれかの方法でローカルサーバーを起動してください：
+                        </p>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; text-align: left; margin: 1rem 0;">
+                            <strong>Python がある場合:</strong><br>
+                            <code style="background: #e9ecef; padding: 0.2rem;">python -m http.server 8000</code><br><br>
+                            
+                            <strong>Node.js がある場合:</strong><br>
+                            <code style="background: #e9ecef; padding: 0.2rem;">npx serve .</code><br><br>
+                            
+                            <strong>PHP がある場合:</strong><br>
+                            <code style="background: #e9ecef; padding: 0.2rem;">php -S localhost:8000</code>
+                        </div>
+                        <button id="demoBtn" style="
+                            padding: 1rem 2rem;
+                            background: #667eea;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 1rem;
+                            margin-top: 1rem;
+                        ">とりあえずデモを見る</button>
+                    </div>
+                `;
+                
+                document.getElementById('demoBtn').onclick = () => {
+                    this.createDummyPage();
+                    this.loading.style.display = 'none';
+                };
+            }
+
+            createDummyPage() {
+                // 実際の実装では、アップロードされたPDFファイルを使用します
+                this.canvas.width = 800;
+                this.canvas.height = 600;
+                
+                this.ctx.fillStyle = '#f8f9fa';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.ctx.fillStyle = '#333';
+                this.ctx.font = '24px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('SQL講習 -VOL.1-', this.canvas.width/2, 100);
+                
+                this.ctx.font = '16px Arial';
+                this.ctx.fillText(`ページ ${this.pageNum} / ${this.totalPages}`, this.canvas.width/2, 150);
+                
+                this.ctx.font = '14px Arial';
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText('このプロトタイプでは、実際のPDF表示機能が含まれています。', 50, 200);
+                this.ctx.fillText('アップロードされたPDFファイルを使用して、', 50, 230);
+                this.ctx.fillText('スライドベースの学習を行うことができます。', 50, 260);
+                
+                this.ctx.fillStyle = '#667eea';
+                this.ctx.fillText('機能:', 50, 320);
+                this.ctx.fillStyle = '#333';
+                this.ctx.fillText('• PDFスライドの表示', 70, 350);
+                this.ctx.fillText('• ページナビゲーション', 70, 380);
+                this.ctx.fillText('• 進捗管理', 70, 410);
+                this.ctx.fillText('• 目次機能', 70, 440);
+                this.ctx.fillText('• ズーム機能', 70, 470);
+                
+                this.loading.style.display = 'none';
+                this.canvas.style.display = 'block';
+                this.updateProgress();
+            }
+
+            async renderPage(num) {
+                this.pageNum = num;
+                
+                if (this.pdfDoc) {
+                    // 実際のPDFページを表示
+                    try {
+                        const page = await this.pdfDoc.getPage(num);
+                        const viewport = page.getViewport({scale: this.scale});
+                        
+                        this.canvas.height = viewport.height;
+                        this.canvas.width = viewport.width;
+                        
+                        const renderContext = {
+                            canvasContext: this.ctx,
+                            viewport: viewport
+                        };
+                        
+                        this.loading.style.display = 'none';
+                        this.canvas.style.display = 'block';
+                        
+                        await page.render(renderContext).promise;
+                    } catch (error) {
+                        console.error('ページの描画に失敗しました:', error);
+                        this.createDummyPage();
+                    }
+                } else {
+                    // ダミーページを表示
+                    this.createDummyPage();
+                }
+                
+                this.updateProgress();
+                this.updateTOC();
+                this.updateNavButtons();
+            }
+
+            prevPage() {
+                if (this.pageNum <= 1) return;
+                this.renderPage(this.pageNum - 1);
+            }
+
+            nextPage() {
+                if (this.pageNum >= this.totalPages) return;
+                this.renderPage(this.pageNum + 1);
+            }
+
+            goToPage(pageNum) {
+                if (pageNum < 1 || pageNum > this.totalPages) return;
+                this.renderPage(pageNum);
+            }
+
+            zoomIn() {
+                this.scale = Math.min(this.scale * 1.2, 3);
+                this.renderPage(this.pageNum);
+            }
+
+            zoomOut() {
+                this.scale = Math.max(this.scale / 1.2, 0.5);
+                this.renderPage(this.pageNum);
+            }
+
+            resetZoom() {
+                this.scale = 1.2;
+                this.renderPage(this.pageNum);
+            }
+
+            updateProgress() {
+                const progress = (this.pageNum / this.totalPages) * 100;
+                document.getElementById('currentPage').textContent = this.pageNum;
+                document.getElementById('totalPages').textContent = this.totalPages;
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressText').textContent = `進捗: ${Math.round(progress)}%`;
+            }
+
+            updateTOC() {
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.classList.remove('active');
+                    const itemPage = parseInt(item.dataset.page);
+                    if (this.pageNum >= itemPage) {
+                        const nextItem = item.nextElementSibling;
+                        const nextPage = nextItem ? parseInt(nextItem.dataset.page) : this.totalPages + 1;
+                        if (this.pageNum < nextPage) {
+                            item.classList.add('active');
+                        }
+                    }
+                });
+            }
+
+            updateNavButtons() {
+                document.getElementById('prevBtn').disabled = this.pageNum <= 1;
+                document.getElementById('nextBtn').disabled = this.pageNum >= this.totalPages;
+            }
+        }
+
+        // アプリケーション初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            new SQLLearningApp();
+        });
+    </script>
+</body>
+</html>
