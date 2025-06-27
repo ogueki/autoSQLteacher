@@ -41,8 +41,8 @@
             margin: 0 auto;
             padding: 1rem;
             display: grid;
-            grid-template-columns: 1fr;
-            grid-template-rows: 1fr 200px;
+            grid-template-columns: 300px 1fr 350px;
+            grid-template-rows: 1fr;
             gap: 1rem;
             height: calc(100vh - 120px);
             position: relative;
@@ -55,43 +55,13 @@
             border-radius: 15px;
             padding: 1.5rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            position: fixed;
-            left: -320px;
-            top: 120px;
-            bottom: 200px;
-            width: 300px;
-            z-index: 200;
-            transition: left 0.3s ease;
             overflow-y: auto;
-        }
-
-        .sidebar.open {
-            left: 20px;
+            display: flex;
+            flex-direction: column;
         }
 
         .sidebar-toggle {
-            position: fixed;
-            left: 20px;
-            top: 140px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 0 8px 8px 0;
-            padding: 1rem 0.5rem;
-            cursor: pointer;
-            z-index: 250;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .sidebar-toggle:hover {
-            background: #5a67d8;
-            transform: scale(1.05);
-        }
-
-        .sidebar-toggle.open {
-            left: 340px;
+            display: none;
         }
 
         .sidebar h2 {
@@ -236,11 +206,10 @@
             border-radius: 15px;
             padding: 1rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            height: 200px;
-            overflow-y: auto;
             position: relative;
             display: flex;
             flex-direction: column;
+            height: 100%;
         }
 
         .text-window-header {
@@ -287,6 +256,12 @@
             border-left: 4px solid #28a745;
         }
 
+        .chat-message.user {
+            background: linear-gradient(135deg, #e8f5e5, #f0fff4);
+            border-left: 4px solid #667eea;
+            margin-left: 1rem;
+        }
+
         .message-author {
             font-weight: 600;
             font-size: 0.85rem;
@@ -297,6 +272,44 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .chat-send-btn {
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s ease;
+        }
+
+        .chat-send-btn:hover {
+            background: #5a67d8;
         }
 
         .text-window-controls {
@@ -354,11 +367,64 @@
             object-fit: contain;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .container {
                 grid-template-columns: 1fr;
-                gap: 1rem;
-                padding: 1rem;
+                grid-template-rows: 1fr 300px;
+                padding: 0.5rem;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -320px;
+                top: 120px;
+                bottom: 320px;
+                width: 300px;
+                z-index: 200;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.mobile-open {
+                left: 20px;
+            }
+            
+            .sidebar-toggle {
+                display: block;
+                position: fixed;
+                left: 20px;
+                top: 140px;
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 0 8px 8px 0;
+                padding: 1rem 0.5rem;
+                cursor: pointer;
+                z-index: 250;
+                font-size: 1.2rem;
+                transition: all 0.3s ease;
+                box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            }
+            
+            .sidebar-toggle:hover {
+                background: #5a67d8;
+            }
+            
+            .sidebar-toggle.mobile-open {
+                left: 340px;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .container {
+                grid-template-rows: 1fr 250px;
             }
             
             .sidebar {
@@ -366,23 +432,15 @@
                 right: 0;
                 width: calc(100vw - 40px);
                 top: 120px;
-                bottom: 220px;
+                bottom: 270px;
             }
             
-            .sidebar.open {
+            .sidebar.mobile-open {
                 left: 20px;
             }
             
-            .sidebar-toggle.open {
+            .sidebar-toggle.mobile-open {
                 left: calc(100vw - 60px);
-            }
-            
-            .nav-buttons {
-                flex-direction: column;
-            }
-
-            .text-window {
-                height: 150px;
             }
         }
     </style>
@@ -393,7 +451,7 @@
     </div>
 
     <div class="container">
-        <!-- サイドバー開閉ボタン -->
+        <!-- モバイル用サイドバートグル -->
         <button class="sidebar-toggle" id="sidebarToggle">📚</button>
         
         <!-- サイドバー -->
@@ -469,6 +527,10 @@
                     学習を開始しました。サイドバーから目次を選択して、自分のペースで進めてください。
                 </div>
             </div>
+            <div class="chat-input-container" id="chatInputContainer">
+                <input type="text" class="chat-input" id="chatInput" placeholder="質問を入力してください...">
+                <button class="chat-send-btn" id="chatSendBtn">送信</button>
+            </div>
         </div>
     </div>
 
@@ -481,22 +543,20 @@
                 this.pdfDoc = null;
                 this.pageNum = 1;
                 this.totalPages = 52;
-                this.scale = 1.2;
+                this.scale = 1.5;
                 this.canvas = document.getElementById('pdfCanvas');
                 this.ctx = this.canvas.getContext('2d');
                 this.loading = document.getElementById('loadingMessage');
-                this.sidebarOpen = false;
                 this.currentMode = 'chat';
+                this.sidebarOpen = false;
                 
                 this.initEventListeners();
                 this.loadPDF();
                 this.initTextWindow();
+                this.handleResize();
             }
 
             initEventListeners() {
-                // サイドバー開閉
-                document.getElementById('sidebarToggle').addEventListener('click', () => this.toggleSidebar());
-                
                 // ナビゲーションボタン
                 document.getElementById('prevBtn').addEventListener('click', () => this.prevPage());
                 document.getElementById('nextBtn').addEventListener('click', () => this.nextPage());
@@ -512,6 +572,9 @@
                         const page = parseInt(e.target.dataset.page);
                         this.goToPage(page);
                         this.addMessage('system', `ページ ${page} に移動しました`);
+                        if (window.innerWidth <= 1024) {
+                            this.closeSidebar();
+                        }
                     });
                 });
 
@@ -520,6 +583,15 @@
                 document.getElementById('explanationMode').addEventListener('click', () => this.setMode('explanation'));
                 document.getElementById('clearBtn').addEventListener('click', () => this.clearTextWindow());
 
+                // チャット機能
+                document.getElementById('chatSendBtn').addEventListener('click', () => this.sendMessage());
+                document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+
+                // モバイル用サイドバートグル
+                document.getElementById('sidebarToggle').addEventListener('click', () => this.toggleSidebar());
+
                 // キーボードナビゲーション
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'ArrowLeft') this.prevPage();
@@ -527,11 +599,15 @@
                     if (e.key === 'Escape') this.closeSidebar();
                 });
 
+                // リサイズ処理
+                window.addEventListener('resize', () => this.handleResize());
+
                 // サイドバー外クリックで閉じる
                 document.addEventListener('click', (e) => {
                     const sidebar = document.getElementById('sidebar');
                     const toggle = document.getElementById('sidebarToggle');
-                    if (this.sidebarOpen && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                    if (this.sidebarOpen && window.innerWidth <= 1024 && 
+                        !sidebar.contains(e.target) && !toggle.contains(e.target)) {
                         this.closeSidebar();
                     }
                 });
@@ -630,22 +706,6 @@
                 this.updateProgress();
             }
 
-            toggleSidebar() {
-                this.sidebarOpen = !this.sidebarOpen;
-                const sidebar = document.getElementById('sidebar');
-                const toggle = document.getElementById('sidebarToggle');
-                
-                sidebar.classList.toggle('open', this.sidebarOpen);
-                toggle.classList.toggle('open', this.sidebarOpen);
-                toggle.textContent = this.sidebarOpen ? '✖️' : '📚';
-            }
-
-            closeSidebar() {
-                this.sidebarOpen = false;
-                document.getElementById('sidebar').classList.remove('open');
-                document.getElementById('sidebarToggle').classList.remove('open');
-                document.getElementById('sidebarToggle').textContent = '📚';
-            }
 
             initTextWindow() {
                 this.pageExplanations = {
@@ -663,6 +723,7 @@
                 const explanationBtn = document.getElementById('explanationMode');
                 const windowTitle = document.getElementById('windowTitle');
                 const windowMode = document.getElementById('windowMode');
+                const chatInputContainer = document.getElementById('chatInputContainer');
                 
                 chatBtn.classList.toggle('active', mode === 'chat');
                 explanationBtn.classList.toggle('active', mode === 'explanation');
@@ -670,10 +731,12 @@
                 if (mode === 'chat') {
                     windowTitle.textContent = 'AI学習アシスタント';
                     windowMode.textContent = '💬';
+                    chatInputContainer.style.display = 'flex';
                     this.addMessage('bot', 'チャットモードです。何か質問があれば聞いてください！');
                 } else {
                     windowTitle.textContent = '学習ガイド';
                     windowMode.textContent = '📖';
+                    chatInputContainer.style.display = 'none';
                     this.showPageExplanation();
                 }
             }
@@ -751,8 +814,68 @@
             }
 
             resetZoom() {
-                this.scale = 1.2;
+                this.scale = 1.5;
                 this.renderPage(this.pageNum);
+            }
+
+            sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                if (!message) return;
+
+                // ユーザーメッセージを追加
+                this.addMessage('user', message, '😊 あなた');
+                input.value = '';
+
+                // AIレスポンスをシミュレート
+                setTimeout(() => {
+                    this.generateAIResponse(message);
+                }, 1000);
+            }
+
+            generateAIResponse(userMessage) {
+                const responses = {
+                    'sql': 'SQLはデータベースを操作するための言語です。SELECT、INSERT、UPDATE、DELETEなどのコマンドがあります。',
+                    'select': 'SELECT文はデータベースからデータを取得するためのコマンドです。基本的な構文は"SELECT 列名 FROM テーブル名"です。',
+                    'where': 'WHERE句はデータをフィルタリングするために使います。例: SELECT * FROM users WHERE age > 20',
+                    'ありがとう': 'どういたしまして！他にも質問がありましたらいつでも聞いてくださいね。',
+                    'こんにちは': 'こんにちは！SQL学習を頑張っているんですね。何か分からないことはありますか？'
+                };
+
+                const lowerMessage = userMessage.toLowerCase();
+                let response = '申し訳ありません、よく理解できませんでした。SQLに関する具体的な質問をしていただけると、より詳しくお答えできます。';
+
+                for (const [key, value] of Object.entries(responses)) {
+                    if (lowerMessage.includes(key)) {
+                        response = value;
+                        break;
+                    }
+                }
+
+                this.addMessage('bot', response);
+            }
+
+            toggleSidebar() {
+                this.sidebarOpen = !this.sidebarOpen;
+                const sidebar = document.getElementById('sidebar');
+                const toggle = document.getElementById('sidebarToggle');
+                
+                sidebar.classList.toggle('mobile-open', this.sidebarOpen);
+                toggle.classList.toggle('mobile-open', this.sidebarOpen);
+                toggle.textContent = this.sidebarOpen ? '✖️' : '📚';
+            }
+
+            closeSidebar() {
+                this.sidebarOpen = false;
+                document.getElementById('sidebar').classList.remove('mobile-open');
+                document.getElementById('sidebarToggle').classList.remove('mobile-open');
+                document.getElementById('sidebarToggle').textContent = '📚';
+            }
+
+            handleResize() {
+                if (window.innerWidth > 1024) {
+                    this.closeSidebar();
+                }
             }
 
             updateProgress() {
