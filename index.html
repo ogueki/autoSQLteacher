@@ -15,7 +15,8 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .header {
@@ -43,8 +44,9 @@
             grid-template-columns: 1fr;
             grid-template-rows: 1fr auto;
             gap: 1rem;
-            min-height: calc(100vh - 100px);
+            height: calc(100vh - 100px);
             position: relative;
+            overflow: hidden;
         }
 
         .sidebar {
