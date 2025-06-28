@@ -236,6 +236,27 @@
             font-size: 0.9rem;
             flex: 1;
             overflow-y: auto;
+            max-height: calc(100vh - 200px);
+            padding-right: 8px;
+        }
+
+        /* スクロールバーのスタイリング */
+        .text-window-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .text-window-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .text-window-content::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+
+        .text-window-content::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
         }
 
         .chat-message {
@@ -770,7 +791,14 @@
                 `;
                 
                 textContent.appendChild(messageDiv);
-                textContent.scrollTop = textContent.scrollHeight;
+                
+                // スムーズスクロールで最新メッセージに移動
+                setTimeout(() => {
+                    textContent.scrollTo({
+                        top: textContent.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }, 100);
             }
 
             showPageExplanation() {
