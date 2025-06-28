@@ -297,12 +297,6 @@
             border-color: #667eea;
         }
 
-        .chat-input:disabled {
-            background-color: #f5f5f5;
-            color: #999;
-            cursor: not-allowed;
-        }
-
         .chat-send-btn {
             padding: 0.5rem 1rem;
             background: #667eea;
@@ -314,13 +308,8 @@
             transition: background 0.2s ease;
         }
 
-        .chat-send-btn:hover:not(:disabled) {
+        .chat-send-btn:hover {
             background: #5a67d8;
-        }
-
-        .chat-send-btn:disabled {
-            background: #cbd5e0;
-            cursor: not-allowed;
         }
 
         .text-window-controls {
@@ -831,77 +820,39 @@
 
             sendMessage() {
                 const input = document.getElementById('chatInput');
-                const sendBtn = document.getElementById('chatSendBtn');
                 const message = input.value.trim();
-                if (!message || sendBtn.disabled) return;
-
-                // ボタンを無効化
-                sendBtn.disabled = true;
-                input.disabled = true;
+                if (!message) return;
 
                 // ユーザーメッセージを追加
                 this.addMessage('user', message, '😊 あなた');
                 input.value = '';
 
-                // AI応答を生成
-                this.generateAIResponse(message).finally(() => {
-                    // 完了後にボタンを有効化
-                    sendBtn.disabled = false;
-                    input.disabled = false;
-                    input.focus();
-                });
+                // AIレスポンスをシミュレート
+                setTimeout(() => {
+                    this.generateAIResponse(message);
+                }, 1000);
             }
 
-            async generateAIResponse(userMessage) {
-                try {
-                    this.addMessage('bot', '🤔 考え中...', '🤖 AI先生');
-                    
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            message: userMessage,
-                            currentPage: this.pageNum
-                        })
-                    });
+            generateAIResponse(userMessage) {
+                const responses = {
+                    'sql': 'SQLはデータベースを操作するための言語です。SELECT、INSERT、UPDATE、DELETEなどのコマンドがあります。',
+                    'select': 'SELECT文はデータベースからデータを取得するためのコマンドです。基本的な構文は"SELECT 列名 FROM テーブル名"です。',
+                    'where': 'WHERE句はデータをフィルタリングするために使います。例: SELECT * FROM users WHERE age > 20',
+                    'ありがとう': 'どういたしまして！他にも質問がありましたらいつでも聞いてくださいね。',
+                    'こんにちは': 'こんにちは！SQL学習を頑張っているんですね。何か分からないことはありますか？'
+                };
 
-                    const data = await response.json();
-                    
-                    // "考え中..."メッセージを削除
-                    const messages = document.querySelectorAll('.chat-message');
-                    const lastMessage = messages[messages.length - 1];
-                    if (lastMessage && lastMessage.textContent.includes('考え中...')) {
-                        lastMessage.remove();
-                    }
+                const lowerMessage = userMessage.toLowerCase();
+                let response = '申し訳ありません、よく理解できませんでした。SQLに関する具体的な質問をしていただけると、より詳しくお答えできます。';
 
-                    if (!response.ok) {
-                        throw new Error(data.error || 'サーバーエラーが発生しました。');
+                for (const [key, value] of Object.entries(responses)) {
+                    if (lowerMessage.includes(key)) {
+                        response = value;
+                        break;
                     }
-
-                    this.addMessage('bot', data.reply);
-                    
-                } catch (error) {
-                    console.error('AI応答エラー:', error);
-                    
-                    // "考え中..."メッセージを削除
-                    const messages = document.querySelectorAll('.chat-message');
-                    const lastMessage = messages[messages.length - 1];
-                    if (lastMessage && lastMessage.textContent.includes('考え中...')) {
-                        lastMessage.remove();
-                    }
-                    
-                    let errorMessage = '申し訳ありません。現在AI機能が利用できません。';
-                    
-                    if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
-                        errorMessage = 'サーバーに接続できません。インターネット接続を確認してください。';
-                    } else if (error.message) {
-                        errorMessage = error.message;
-                    }
-                    
-                    this.addMessage('bot', `❌ ${errorMessage}`);
                 }
+
+                this.addMessage('bot', response);
             }
 
             toggleSidebar() {

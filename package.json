@@ -1,0 +1,23 @@
+{
+  "name": "sql-learning-app",
+  "version": "1.0.0",
+  "description": "SQL learning application with AI chat assistant",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required for static site'",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "openai": "^4.24.1"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "keywords": ["sql", "learning", "ai", "chat", "education", "vercel"],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
